@@ -1,0 +1,97 @@
+package com.appservisi.harfcizme;
+
+
+
+import android.os.Bundle;
+import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.Display;
+import android.view.MotionEvent;
+import android.view.View;
+import android.widget.Button;
+import android.widget.RelativeLayout;
+import androidx.appcompat.app.AppCompatActivity;
+import java.util.ArrayList;
+
+public class MainActivity extends AppCompatActivity {
+
+    // Basılı tutulduğunda alınacak değerleri saklamak için liste
+    ArrayList<String> selectedValues = new ArrayList<>();
+    Button[] buttons;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        RelativeLayout relativeLayout = findViewById(R.id.relativeLayout);
+
+        // Harfler ve butonlar
+        final String[] letters = {"A", "B", "C", "D"};
+        buttons = new Button[4];
+
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+
+
+
+        int centerX =displayMetrics.widthPixels / 4;
+        int centerY = displayMetrics.heightPixels / 4;
+
+        // Yarıçapı hesapla
+        int radius = Math.min(centerX, centerY);
+
+        for (int i = 0; i < 4; i++) {
+            buttons[i] = new Button(this);
+            buttons[i].setText(letters[i]);
+
+            // Açıyı hesapla
+            double angle = 2 * Math.PI * i / 4;
+
+            // Çocuğun pozisyonunu hesapla
+            int childX = (int) (centerX + radius * Math.cos(angle));
+            int childY = (int) (centerY + radius * Math.sin(angle));
+
+            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
+                    120,
+                    120
+            );
+            params.leftMargin = childX;
+            params.topMargin = childY;
+
+            // Butonlara basılı tutulma özelliği ekleyelim
+            int finalI = i;
+            buttons[i].setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    if (event.getAction() == MotionEvent.ACTION_MOVE) {
+
+                        for(int i=0;i<buttons.length;i++){
+
+                            if(isPointInsideView(event.getRawX(),event.getRawY(),buttons[i])){
+                                Log.e("buton", buttons[i].getText()+String.valueOf(event.getRawX()));
+                            }
+                        }
+
+                        // Butona basıldığında harf değerini string listesine ekle
+                        String letter = buttons[finalI].getText().toString();
+
+                        if (!selectedValues.contains(letter)) {
+                            selectedValues.add(letter);
+                        }
+                    }
+                    return false; // Basılı tutulduğunda diğer işlemler için true döndürmüyoruz
+                }
+            });
+
+            // Butonu layout'a ekle
+            relativeLayout.addView(buttons[i], params);
+        }
+    }
+
+    private boolean isPointInsideView(float x, float y, View view) {
+        int[] location = new int[2];
+        view.getLocationOnScreen(location);
+        return (x >= location[0] && x <= location[0] + view.getWidth() &&
+                y >= location[1] && y <= location[1] + view.getHeight());
+    }
+}
